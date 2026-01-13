@@ -5,10 +5,13 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract TaskFactory {
 
+    // Enter 0 for Low, 1 for Medium, 2 for High
+    enum Priority {Low, Medium, High}
+
     struct Task{
         string taskDescription;
         string taskCategory;
-        uint8 taskPriority;
+        Priority taskPriority;
         uint32 taskDeadline; // To store time in seconds
         bool taskStatus;
     }
@@ -16,16 +19,29 @@ contract TaskFactory {
     Task[] internal taskList;
     uint taskCount = 0;
 
+    string[] internal categories;
+
     modifier checkRange(uint taskId){
         require(taskId < taskCount, "Invalid Task");
         _;
     }
 
-    function newTask(string memory taskDescription, string memory taskCategory, uint8 taskPriority, uint32 taskDeadline) public {
+    function newTask(string memory taskDescription, string memory taskCategory, Priority taskPriority, uint32 taskDeadline) public {
+
         string memory taskDesc = string(abi.encodePacked(Strings.toString(taskCount),"-",taskDescription));
         taskList.push(Task(taskDesc, taskCategory, taskPriority, taskDeadline, false));
         taskCount++;
+
     }
+
+    function newCategory(string memory taskCategory) internal{
+        if(categories.length == 0) categories[0] = taskCategory;
+        for(uint i = 0;i < categories.length; i++){
+            require(keccak256(abi.encodePacked(categories[i])) == keccak256(abi.encodePacked(taskCategory)));
+                categories.push(taskCategory);
+        }
+    }
+    
 
     function listTask() public view returns (string[] memory) {
         string[] memory tasks = new string[](taskList.length);
