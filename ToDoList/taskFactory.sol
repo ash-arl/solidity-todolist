@@ -53,6 +53,27 @@ contract TaskFactory {
         return tasks;
     }
 
+    function removeTask(uint taskId) public checkRange(taskId){
+        uint last = taskList.length - 1;
+        if(last != taskId){
+            taskList[taskId] = taskList[last];
+        }
+        taskList.pop();
+
+    }
+
+    function ListByCategory(string memory category)public view returns(Task[] memory){
+
+        Task[] memory tasks = new Task[](taskList.length);
+        uint j = 0;
+
+        for(uint i = 0;i < taskList.length;i++){
+            if(keccak256(abi.encodePacked(category)) == keccak256(abi.encodePacked(taskList[i].taskCategory)))
+                tasks[j++] = taskList[i];
+        }
+        return tasks;
+    }
+
     function callTask(uint taskId) public view checkRange(taskId) returns(Task memory){
         return taskList[taskId];
     }
