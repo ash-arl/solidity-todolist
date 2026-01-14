@@ -7,39 +7,48 @@ contract TaskFactory {
 
     // Enter 0 for Low, 1 for Medium, 2 for High
     enum Priority {Low, Medium, High}
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not authorized");
+        _;
+    }
+
+    modifier checkRange(uint taskId){
+        require(taskId < taskList.length, "Invalid Task");
+        _;
+    }
 
     struct Task{
         string taskDescription;
         string taskCategory;
         Priority taskPriority;
-        uint32 taskDeadline; // To store time in seconds
+        uint64 taskDeadline; // To store time in seconds
         bool taskStatus;
     }
 
-    Task[] internal taskList;
-    uint taskCount = 0;
-
+    Task[] internal taskList;   
     string[] internal categories;
 
-    modifier checkRange(uint taskId){
-        require(taskId < taskCount, "Invalid Task");
-        _;
-    }
+    function newTask(string memory taskDescription, string memory taskCategory, Priority taskPriority, uint64 taskDeadline) public {
 
-    function newTask(string memory taskDescription, string memory taskCategory, Priority taskPriority, uint32 taskDeadline) public {
-
-        string memory taskDesc = string(abi.encodePacked(Strings.toString(taskCount),"-",taskDescription));
+        string memory taskDesc = string(abi.encodePacked(Strings.toString(taskList.length),"-",taskDescription));
         taskList.push(Task(taskDesc, taskCategory, taskPriority, taskDeadline, false));
-        taskCount++;
 
     }
 
-    function newCategory(string memory taskCategory) internal{
-        if(categories.length == 0) categories[0] = taskCategory;
-        for(uint i = 0;i < categories.length; i++){
-            require(keccak256(abi.encodePacked(categories[i])) == keccak256(abi.encodePacked(taskCategory)));
-                categories.push(taskCategory);
+    //Keeps a track of the cateogries the user has created for easy accessibility.
+    function listCategories(string memory taskCategory) internal {
+    for (uint i = 0; i < categories.length; i++) {
+        if (keccak256(bytes(categories[i])) == keccak256(bytes(taskCategory))) {
+            return; // already exists
+            }
         }
+        categories.push(taskCategory);
     }
     
 
@@ -62,29 +71,48 @@ contract TaskFactory {
 
     }
 
-    function ListByCategory(string memory category)public view returns(Task[] memory){
+    //outputs tasks by category
+    function ListByCategory(string memory category) public view returns (Task[] memory) {
+    uint count = 0;
 
-        Task[] memory tasks = new Task[](taskList.length);
-        uint j = 0;
-
-        for(uint i = 0;i < taskList.length;i++){
-            if(keccak256(abi.encodePacked(category)) == keccak256(abi.encodePacked(taskList[i].taskCategory)))
-                tasks[j++] = taskList[i];
+    for (uint i = 0; i < taskList.length; i++) {
+        if (keccak256(bytes(category)) == keccak256(bytes(taskList[i].taskCategory))) {
+            count++;
         }
-        return tasks;
     }
 
-    function ListByStatus(bool status)public view returns(Task[] memory){
+    Task[] memory tasks = new Task[](count);
+    uint j = 0;
 
-        Task[] memory tasks = new Task[](taskList.length);
-        uint j = 0;
-
-        for(uint i = 0;i < taskList.length;i++){
-            if(status == taskList[i].taskStatus)
-                tasks[j++] = taskList[i];
+    for (uint i = 0; i < taskList.length; i++) {
+        if (keccak256(bytes(category)) == keccak256(bytes(taskList[i].taskCategory))) {
+            tasks[j++] = taskList[i];
         }
-        return tasks;
     }
+
+    return tasks;
+}
+
+    function ListByStatus(bool status) public view returns (Task[] memory) {
+    uint count = 0;
+
+    for (uint i = 0; i < taskList.length; i++) {
+        if (status == taskList[i].taskStatus) {
+            count++;
+        }
+    }
+
+    Task[] memory tasks = new Task[](count);
+    uint j = 0;
+
+    for (uint i = 0; i < taskList.length; i++) {
+        if (status == taskList[i].taskStatus) {
+            tasks[j++] = taskList[i];
+        }
+    }
+
+    return tasks;
+}
 
     function taskStatusChange(uint taskId) public checkRange(taskId) returns(Task memory){
 
