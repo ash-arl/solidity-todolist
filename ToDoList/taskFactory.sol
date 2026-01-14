@@ -74,6 +74,26 @@ contract TaskFactory {
         return tasks;
     }
 
+    function ListByStatus(bool status)public view returns(Task[] memory){
+
+        Task[] memory tasks = new Task[](taskList.length);
+        uint j = 0;
+
+        for(uint i = 0;i < taskList.length;i++){
+            if(status == taskList[i].taskStatus)
+                tasks[j++] = taskList[i];
+        }
+        return tasks;
+    }
+
+    function taskStatusChange(uint taskId) public checkRange(taskId) returns(Task memory){
+
+        taskList[taskId].taskStatus = !taskList[taskId].taskStatus;
+
+        return taskList[taskId];
+
+    }
+
     function callTask(uint taskId) public view checkRange(taskId) returns(Task memory){
         return taskList[taskId];
     }
