@@ -3,10 +3,26 @@ pragma solidity ^ 0.8.30;
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract TaskFactory {
-  // Enter 0 for Low, 1 for Medium, 2 for High
+contract TodoList {
+
+  //Priority level  for the user's tasks 
+  // Enter  0 for Low, 1 for Medium, 2 for High priorities
   enum Priority { Low, Medium, High } address public owner;
 
+  //Struct for tasks
+  struct Task {
+    uint id;
+    string taskDescription;
+    string taskCategory;
+    Priority taskPriority;
+    uint64 taskDeadline;
+    bool taskStatus;
+  }
+
+  mapping(address => Task[]) private userTasks;
+  mapping(address => string[]) private userCategories;
+  mapping(address => uint[]) private taksCounter;
+  
   constructor() { owner = msg.sender; }
 
   modifier onlyOwner() {
@@ -19,13 +35,7 @@ contract TaskFactory {
     _;
   }
 
-  struct Task {
-    string taskDescription;
-    string taskCategory;
-    Priority taskPriority;
-    uint64 taskDeadline;  // To store time in seconds
-    bool taskStatus;
-  }
+  
 
   Task[] internal taskList;
   string[] internal categories;
